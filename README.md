@@ -1,4 +1,4 @@
-SmartPantry
+SmarterPantry
 ==========
 SmartPantry helps you keep track of your groceries and your shopping list. It is available for free from the [Play store](https://play.google.com/store/apps/details?id=macadamian.smartpantry).
 
@@ -8,6 +8,8 @@ SmartPantry helps you keep track of your groceries and your shopping list. It is
 - Get notified when an item is about to expire
 
 [Macadamian](http://www.macadamian.com) is excited to release SmartPantry as an open-source project under the Apache 2.0 license, and we strongly encourage contributions to the repository. For more information on how you can contribute, please see the [contributing](#contributing) section below.
+
+[James Vyas](http://jimivyas.me) is excited to work with Quin Millard and [Sam Yuyitung](http://samyuyitung.me/) to improve upon the app and make it better than ever before!
 
 ### Table of Contents
 - [Installation](#installation)
