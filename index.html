@@ -4,23 +4,23 @@
 
 <body>
 
-	<div ng-app = "" ng-init = "countries = [{locale:'butts-EN', name: 'buttsville'}, {locale:'poop-EN', name: 'poopsville'}]">
-	<p>Enter your name: <input type = "text" ng-model = "name"></p>
-	<p>Hello <span ng-bind = "name"></span>!</p>
+	<h1> Testing Variables</h1>
+<!-- ng-app initializes -->
+	<div ng-app = "">
 
-	<p> List of areas with their language codes: </p>
+	<p>Please enter variable 1: <input type = "number" ng-model = "var1"></p>
+	<p>Enter variable 2: <input type ="number" ng-model ="var2"></p>
+	<p>Please enter your first name: <input type ="text" ng-model = "firstname"> as well as your last name  <input type = "text" ng-model = "lastname"></p>
 
-		<ol>
-			<li ng-repeat = "country in countries">
-				{{ 'Country: ' + country.name + ', locale: ' + country.locale }}
-			</li>
-		</ol>
-	</div>
+	<p>Hello <span ng-bind = "firstname"></span> <span ng-bind = "lastname"></span>!
+
+	<p>Your total value is
+	{{ (var1 * var2).isFinite? (var1 * var2) :  'Please enter a number'
+	}}
+	</p>
 
 
 
-
-	
 	<script src = "http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js">
 	</script>
 
