@@ -4,10 +4,19 @@
 
 <body>
 
-	<div ng-app = "">
-		<p>Enter your favorite meme: <input type="text" ng-model = "meme"></p>
-		<p>Oh cool! Your favorite meme is <span ng-bind = "meme"></span>!</p>
+	<div ng-app = "" ng-init = "countries = [{locale:'butts-EN', name: 'buttsville'}, {locale:'poop-EN', name: 'poopsville'}]">
+	<p>Enter your name: <input type = "text" ng-model = "name"></p>
+	<p>Hello <span ng-bind = "name"></span>!</p>
+
+	<p> List of areas with their language codes: </p>
+
+		<ol>
+			<li ng-repeat = "country in countries">
+				{{ 'Country: ' + country.name + ', locale: ' + country.locale }}
+			</li>
+		</ol>
 	</div>
+
 
 
 
