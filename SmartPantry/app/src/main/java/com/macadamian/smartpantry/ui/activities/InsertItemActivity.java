@@ -16,6 +16,7 @@ import com.macadamian.smartpantry.ui.UIConstants;
 import com.macadamian.smartpantry.utility.InputUtility;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class InsertItemActivity extends AbstractManipulationActivity {
 
@@ -78,6 +79,7 @@ public class InsertItemActivity extends AbstractManipulationActivity {
         finish();
     }
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,8 +119,7 @@ public class InsertItemActivity extends AbstractManipulationActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if(!changesHadOccurred && resultCode == 1) {
             populateByBarcode();
-        }else if(!changesHadOccurred && resultCode == 2)
-            populateByPicture();
+        }
     }
 
     private void populateByBarcode() {
@@ -142,25 +143,5 @@ public class InsertItemActivity extends AbstractManipulationActivity {
             itemToCopyFrom.close();
         }
     }
-    private void populateByPicture() {
-        //Pre-populate spinners..
-        Cursor itemToCopyFrom = getContentResolver().query(MyContract.templateByBarcodeUri(mBarcodeValue), null, null, null, null);
-        if (itemToCopyFrom != null && itemToCopyFrom.moveToFirst()) {
-            String categoryName = "";
-            ItemTemplateReader readerFrom = ItemTemplateReader.getInstance(itemToCopyFrom);
-            String name = readerFrom.getName();
-            final Cursor catCursor = getContentResolver().query(MyContract.categoryUri(Long.toString(readerFrom.getCategory())), null, null, null, null);
-            if (catCursor != null && catCursor.moveToFirst()) {
-                categoryName = CategoryReader.getInstance(catCursor).getName();
-                catCursor.close();
-            }
 
-            String inventoryName = readerFrom.getAliasedInventoryName();
-
-            initLocally(name, inventoryName, categoryName, mBarcodeValue);
-        }
-        if (itemToCopyFrom != null) {
-            itemToCopyFrom.close();
-        }
-    }
 }

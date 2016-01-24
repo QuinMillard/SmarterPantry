@@ -98,24 +98,19 @@ public abstract class AbstractManipulationActivity extends Activity implements L
     private final ClarifaiClient client = new ClarifaiClient(APP_ID, APP_SECRET);
 
 
-
-
-
+    private List<String> foods;
     protected final static String TAG = "ManipulationActivity";
     private final static int SPINNER_DEFAULT_POSITION = 0;
     private final static int SPINNER_PICK_A_DATE_POSITION = 8;
     private final static int REQUEST_CODE_EDIT_LOCATION = 1000;
     private final static int MAX_NAME_LENGTH = 50;
     final int REQUEST_IMAGE_CAPTURE = 1;
-    final int REQUEST_PICTURE_REC = 2;
     //Constants for the argument bundle variable keys passed in to the fragment instance
     public final static String EXTRA_ITEM_ID = "EXTRA_ITEM_ID";
 
     private Button mSubmitButton;
     private ImageToggleButton mBarcodeToggle;
     private ImageToggleButton mCameraToggle;
-    private ImageView mImageView;
-    private Uri imageUri;
     protected AutoCompleteTextView mNameLabel;
     private InventoryItemNameAdapter mInventoryItemNameAdapter;
     protected TextView mExpiryLabel;
@@ -287,7 +282,7 @@ public abstract class AbstractManipulationActivity extends Activity implements L
                 changesOccurred();
             }
         });
-        mAutoCompleteItems = new ArrayList<String>();
+        mAutoCompleteItems = new ArrayList<>();
         getLoaderManager().initLoader(UIConstants.LOADER_INVENTORY_ITEMS, null, this);
         mSlidrInterface = Slidr.attach(this);
 
@@ -296,9 +291,20 @@ public abstract class AbstractManipulationActivity extends Activity implements L
         if(initialShowcaseNotYetShown) {
             displayShowcaseViewOne();
         }
-    }
+        fillList();
 
-        private void displayShowcaseViewOne(){
+    }
+    void fillList(){
+        foods = new ArrayList<>();
+        foods.add("apple");
+        foods.add("orange");
+        foods.add("banana");
+        foods.add("bread");
+        foods.add("coffee");
+        foods.add("muffin");
+        foods.add("cucumber");
+    }
+    private void displayShowcaseViewOne(){
         RelativeLayout.LayoutParams lps = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lps.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         lps.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -357,7 +363,7 @@ public abstract class AbstractManipulationActivity extends Activity implements L
                     public void onShowcaseViewHide(final ShowcaseView scv) {
                         scv.setVisibility(View.GONE);
                         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplication());
-                        prefs.edit().putBoolean(UIConstants.PREF_EDIT_ADD_SHOWCASE, false).commit();
+                        prefs.edit().putBoolean(UIConstants.PREF_EDIT_ADD_SHOWCASE, false).apply();
                     }
 
                     @Override
@@ -377,7 +383,7 @@ public abstract class AbstractManipulationActivity extends Activity implements L
 
     protected void initDayLeftSpinner() {
         List<String> dayChoices = Arrays.asList(getResources().getStringArray(R.array.day_left_array));
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.list_item_expirations, R.id.list_item_expirations_label, dayChoices);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.list_item_expirations, R.id.list_item_expirations_label, dayChoices);
         mDayLeftSpinner.setAdapter(adapter);
 
         mDayLeftSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -558,11 +564,11 @@ public abstract class AbstractManipulationActivity extends Activity implements L
         boolean updatedNotified = false;
         final Calendar calendar = Calendar.getInstance();
         final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        if (newExpiry != null && !newExpiry.equals(format.format(calendar.getTime()))) {
+        if (!newExpiry.equals(format.format(calendar.getTime()))) {
             updatedNotified = true;
         }
 
-        if (newExpiry != null && newExpiry.length() == 0){
+        if (newExpiry.length() == 0){
             newExpiry = null;
         }
 
@@ -608,7 +614,6 @@ public abstract class AbstractManipulationActivity extends Activity implements L
                     onPictureResult(data);
                     break;
             }
-            return;
         }
     }
 
@@ -652,15 +657,6 @@ public abstract class AbstractManipulationActivity extends Activity implements L
         changesOccurred();
     }
 
-    private Bitmap loadBitmapFromUri(Uri uri) {
-        try {
-            BitmapFactory.Options opts = new BitmapFactory.Options();
-            return BitmapFactory.decodeStream(getContentResolver().openInputStream(uri), null, opts);
-        } catch (IOException e) {
-            Log.e(TAG, "Error loading image: " + uri, e);
-        }
-        return null;
-    }
     private RecognitionResult recognizeBitmap(Bitmap bitmap) {
         try {
             // Scale down the image. This step is optional. However, sending large images over the
@@ -686,9 +682,11 @@ public abstract class AbstractManipulationActivity extends Activity implements L
             // Display the list of tags in the UI.
             StringBuilder b = new StringBuilder();
             for (Tag tag : result.getTags()) {
-                b.append(b.length() > 0 ? ", " : "").append(tag.getName());
+               if(foods.contains(tag.getName().toLowerCase())){
+                   mNameLabel.setText(tag.getName());
+               }
+
             }
-            Toast.makeText(AbstractManipulationActivity.this, b + "", Toast.LENGTH_SHORT).show();
 
         }
     }
