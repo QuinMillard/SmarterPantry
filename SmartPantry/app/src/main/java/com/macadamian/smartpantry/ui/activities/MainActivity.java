@@ -95,7 +95,7 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
     private BroadcastReceiver mResetSubAppBarReciever = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-             AnimationUtility.resetMoveToZero(mSubAppBar);
+            AnimationUtility.resetMoveToZero(mSubAppBar);
         }
     };
 
@@ -343,7 +343,7 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
 
             }
         });
-        
+
         setupUIComponents();
     }
 

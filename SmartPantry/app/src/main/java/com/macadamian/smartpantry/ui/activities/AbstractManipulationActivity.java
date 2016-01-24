@@ -5,17 +5,32 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CaptureRequest;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,12 +41,14 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.clarifai.api.ClarifaiClient;
 import com.github.amlcurran.showcaseview.OnShowcaseEventListener;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
@@ -56,6 +73,11 @@ import com.r0adkll.slidr.model.SlidrInterface;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,19 +85,37 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import com.clarifai.api.ClarifaiClient;
+import com.clarifai.api.RecognitionRequest;
+import com.clarifai.api.RecognitionResult;
+import com.clarifai.api.Tag;
+import com.clarifai.api.exception.ClarifaiException;
+
 public abstract class AbstractManipulationActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final String APP_ID = "7w9SMsa5J6h-dCCiW5Wp2SFuAIjMur-Q7sgw90i-";
+    private static final String APP_SECRET = "3bFYdZEv61zVYjVZ_OK7LLyCw2Wemzz4l4B_Z9B9";
+    private final ClarifaiClient client = new ClarifaiClient(APP_ID, APP_SECRET);
+
+
+
+
 
     protected final static String TAG = "ManipulationActivity";
     private final static int SPINNER_DEFAULT_POSITION = 0;
     private final static int SPINNER_PICK_A_DATE_POSITION = 8;
     private final static int REQUEST_CODE_EDIT_LOCATION = 1000;
     private final static int MAX_NAME_LENGTH = 50;
-
+    final int REQUEST_IMAGE_CAPTURE = 1;
+    final int REQUEST_PICTURE_REC = 2;
     //Constants for the argument bundle variable keys passed in to the fragment instance
     public final static String EXTRA_ITEM_ID = "EXTRA_ITEM_ID";
 
     private Button mSubmitButton;
     private ImageToggleButton mBarcodeToggle;
+    private ImageToggleButton mCameraToggle;
+    private ImageView mImageView;
+    private Uri imageUri;
     protected AutoCompleteTextView mNameLabel;
     private InventoryItemNameAdapter mInventoryItemNameAdapter;
     protected TextView mExpiryLabel;
@@ -126,6 +166,9 @@ public abstract class AbstractManipulationActivity extends Activity implements L
                         sv.hide();
                     }
                     scanBarcode();
+                    break;
+                case R.id.camera_btn:
+                    cameraAction();
                     break;
                 case R.id.submit_item_btn:
                     saveEditedItemFields();
@@ -213,9 +256,9 @@ public abstract class AbstractManipulationActivity extends Activity implements L
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 mNameLabel.setOnTouchListener(null);
-                 if (sv !=null){
+                if (sv !=null){
                     sv.hide();
-                 }
+                }
                 return false;
             }
         });
@@ -231,6 +274,8 @@ public abstract class AbstractManipulationActivity extends Activity implements L
         discardButton.setOnClickListener(mOnClickListener);
         mBarcodeToggle = (ImageToggleButton) findViewById(R.id.barcode_btn);
         mBarcodeToggle.setOnClickListener(mOnClickListener);
+        mCameraToggle = (ImageToggleButton) findViewById(R.id.camera_btn);
+        mCameraToggle.setOnClickListener(mOnClickListener);
         mLocationSpinner = (Spinner) findViewById(R.id.spinner_location_property_values);
         mCategorySpinner = (Spinner) findViewById(R.id.spinner_category_property_values);
         mDayLeftSpinner = (Spinner) findViewById(R.id.expiration_day_left);
@@ -253,7 +298,7 @@ public abstract class AbstractManipulationActivity extends Activity implements L
         }
     }
 
-    private void displayShowcaseViewOne(){
+        private void displayShowcaseViewOne(){
         RelativeLayout.LayoutParams lps = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lps.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         lps.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -340,7 +385,7 @@ public abstract class AbstractManipulationActivity extends Activity implements L
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position == SPINNER_DEFAULT_POSITION) {
                     return;
-                }else if (position == SPINNER_PICK_A_DATE_POSITION){
+                } else if (position == SPINNER_PICK_A_DATE_POSITION) {
 
                     new DatePickerDialog(AbstractManipulationActivity.this, dateListener, Calendar.getInstance()
                             .get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH),
@@ -376,7 +421,7 @@ public abstract class AbstractManipulationActivity extends Activity implements L
             }
         });
         mLocationSpinner.setVisibility(View.GONE);
-        linearLayout.addView(b,0, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        linearLayout.addView(b, 0, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         HasLocation = false;
     }
 
@@ -550,6 +595,7 @@ public abstract class AbstractManipulationActivity extends Activity implements L
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case IntentIntegrator.REQUEST_CODE:
@@ -558,12 +604,15 @@ public abstract class AbstractManipulationActivity extends Activity implements L
                 case REQUEST_CODE_EDIT_LOCATION:
                     onEditLocationResult(data);
                     break;
+                case REQUEST_IMAGE_CAPTURE:
+                    onPictureResult(data);
+                    break;
             }
             return;
         }
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
+
+
 
     private void onBarcodeResult(final int requestCode, final int resultCode, final Intent data) {
         final IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
@@ -584,6 +633,66 @@ public abstract class AbstractManipulationActivity extends Activity implements L
             changesOccurred();
         }
     }
+    private void onPictureResult(final Intent data) {
+        Bundle extras = data.getExtras();
+        Bitmap mBitmap = (Bitmap) extras.get("data");
+        // Run recognition on a background thread since it makes a network call.
+            new AsyncTask<Bitmap, Void, RecognitionResult>() {
+                @Override
+                protected RecognitionResult doInBackground(Bitmap... bitmaps) {
+                    return recognizeBitmap(bitmaps[0]);
+                }
+
+                @Override
+                protected void onPostExecute(RecognitionResult result) {
+                    updateUIForResult(result);
+                }
+            }.execute(mBitmap);
+        mCameraToggle.setChecked(true);
+        changesOccurred();
+    }
+
+    private Bitmap loadBitmapFromUri(Uri uri) {
+        try {
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            return BitmapFactory.decodeStream(getContentResolver().openInputStream(uri), null, opts);
+        } catch (IOException e) {
+            Log.e(TAG, "Error loading image: " + uri, e);
+        }
+        return null;
+    }
+    private RecognitionResult recognizeBitmap(Bitmap bitmap) {
+        try {
+            // Scale down the image. This step is optional. However, sending large images over the
+            // network is slow and  does not significantly improve recognition performance.
+            Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 320,
+                    320 * bitmap.getHeight() / bitmap.getWidth(), true);
+
+            // Compress the image as a JPEG.
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            scaled.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            byte[] jpeg = out.toByteArray();
+
+            // Send the JPEG to Clarifai and return the result.
+            return client.recognize(new RecognitionRequest(jpeg)).get(0);
+        } catch (ClarifaiException e) {
+            Log.e(TAG, "Clarifai error", e);
+            return null;
+        }
+    }
+
+    private void updateUIForResult(RecognitionResult result) {
+        if (result.getStatusCode() == RecognitionResult.StatusCode.OK) {
+            // Display the list of tags in the UI.
+            StringBuilder b = new StringBuilder();
+            for (Tag tag : result.getTags()) {
+                b.append(b.length() > 0 ? ", " : "").append(tag.getName());
+            }
+            Toast.makeText(AbstractManipulationActivity.this, b + "", Toast.LENGTH_SHORT).show();
+
+        }
+    }
+
 
     public void onBackPressed() {
 
@@ -646,6 +755,14 @@ public abstract class AbstractManipulationActivity extends Activity implements L
         final IntentIntegrator intent = new IntentIntegrator(this);
         intent.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES);
         intent.initiateScan();
+    }
+
+
+    private void cameraAction(){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
     }
 
     private void changesOccurred() {

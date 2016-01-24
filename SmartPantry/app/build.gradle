@@ -58,4 +58,5 @@ dependencies {
     compile 'com.r0adkll:slidableactivity:2.0.2'
     compile 'com.google.android.gms:play-services:6.5.87'
     compile 'com.github.amlcurran.showcaseview:library:5.0.0'
+    compile 'com.clarifai:clarifai-api-java:1.2.0'
 }

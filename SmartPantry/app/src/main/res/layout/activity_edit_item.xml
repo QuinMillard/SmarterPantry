@@ -33,11 +33,21 @@
                     app:cardBackgroundColor="@android:color/transparent"
                     app:contentPadding="@dimen/activity_padding">
 
+                </android.support.v7.widget.CardView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="110dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_weight="2.20">
+
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_width="70dp"
                         android:layout_height="match_parent"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginTop="5dp">
 
                         <com.macadamian.smartpantry.widgets.ImageToggleButton
                             android:id="@+id/barcode_btn"
@@ -46,27 +56,37 @@
                             android:background="@drawable/ripple_white_to_blue_button"
                             app:drawable_on="@drawable/btn_barcode_added"
                             app:drawable_off="@drawable/btn_add_barcode"
-                            app:drawable_checked="false"/>
+                            app:drawable_checked="false"
+                            android:layout_margin="5dp" />
 
-                            <com.rengwuxian.materialedittext.MaterialAutoCompleteTextView
-                                android:id="@+id/item_name"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:nextFocusLeft = "@id/name_barcode_set_container"
-                                android:nextFocusRight = "@id/name_barcode_set_container"
-                                android:hint="@string/edit_text_item_name_hint"
-                                app:floatingLabel="highlight"
-                                app:primaryColor="@android:color/darker_gray"
-                                app:maxCharacters="50"
-                                app:baseColor="@color/black"
-                                app:singleLineEllipsis="true"
-                                android:textSize="28sp"
-                                android:fontFamily="sans-serif-regular"
-                                android:textStyle="bold"
-                                style="@style/AutoCompleteTextViewStyle" />
+                        <com.macadamian.smartpantry.widgets.ImageToggleButton
+                            android:id="@+id/camera_btn"
+                            android:layout_width="@dimen/edit_item_barcode_width"
+                            android:layout_height="@dimen/edit_item_barcode_height"
+                            android:background="@drawable/ripple_white_to_blue_button"
+                            app:drawable_on="@drawable/btn_camera_added"
+                            app:drawable_off="@drawable/btn_add_camera"
+                            app:drawable_checked="false"
+                            android:layout_margin="5dp" />
                     </LinearLayout>
 
-                </android.support.v7.widget.CardView>
+                    <com.rengwuxian.materialedittext.MaterialAutoCompleteTextView
+                            android:id="@+id/item_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:nextFocusLeft = "@id/name_barcode_set_container"
+                            android:nextFocusRight = "@id/name_barcode_set_container"
+                            android:hint="@string/edit_text_item_name_hint"
+                            app:floatingLabel="highlight"
+                            app:primaryColor="@android:color/darker_gray"
+                            app:maxCharacters="50"
+                            app:baseColor="@color/black"
+                            app:singleLineEllipsis="true"
+                            android:textSize="28sp"
+                            android:fontFamily="sans-serif-regular"
+                            android:textStyle="bold"
+                            style="@style/AutoCompleteTextViewStyle" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/field_quantity"

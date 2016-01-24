@@ -59,13 +59,13 @@ public class InsertItemActivity extends AbstractManipulationActivity {
                 getContentResolver().insert(MyContract.inventoryItemsUri(), newValues);
                 Cursor c = getContentResolver().query(MyContract.templateByBarcodeUri(itemBarcode), null, null, null, null);
 
-                    if (c!= null && c.getCount() > 0) {
-                        Log.v(TAG, "Item already exists in template table so update it");
-                        getContentResolver().update(MyContract.templateByBarcodeUri(itemBarcode), templateValues, null, null);
-                        c.close();
-                    } else if (itemBarcode != null) {
-                        getContentResolver().insert(MyContract.templatesUri(), templateValues);
-                    }
+                if (c!= null && c.getCount() > 0) {
+                    Log.v(TAG, "Item already exists in template table so update it");
+                    getContentResolver().update(MyContract.templateByBarcodeUri(itemBarcode), templateValues, null, null);
+                    c.close();
+                } else if (itemBarcode != null) {
+                    getContentResolver().insert(MyContract.templatesUri(), templateValues);
+                }
 
 
                 closeActivity();
@@ -115,12 +115,34 @@ public class InsertItemActivity extends AbstractManipulationActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         boolean changesHadOccurred = mChangesOccurred;
         super.onActivityResult(requestCode, resultCode, data);
-        if(!changesHadOccurred) {
+        if(!changesHadOccurred && resultCode == 1) {
             populateByBarcode();
-        }
+        }else if(!changesHadOccurred && resultCode == 2)
+            populateByPicture();
     }
 
     private void populateByBarcode() {
+        //Pre-populate spinners..
+        Cursor itemToCopyFrom = getContentResolver().query(MyContract.templateByBarcodeUri(mBarcodeValue), null, null, null, null);
+        if (itemToCopyFrom != null && itemToCopyFrom.moveToFirst()) {
+            String categoryName = "";
+            ItemTemplateReader readerFrom = ItemTemplateReader.getInstance(itemToCopyFrom);
+            String name = readerFrom.getName();
+            final Cursor catCursor = getContentResolver().query(MyContract.categoryUri(Long.toString(readerFrom.getCategory())), null, null, null, null);
+            if (catCursor != null && catCursor.moveToFirst()) {
+                categoryName = CategoryReader.getInstance(catCursor).getName();
+                catCursor.close();
+            }
+
+            String inventoryName = readerFrom.getAliasedInventoryName();
+
+            initLocally(name, inventoryName, categoryName, mBarcodeValue);
+        }
+        if (itemToCopyFrom != null) {
+            itemToCopyFrom.close();
+        }
+    }
+    private void populateByPicture() {
         //Pre-populate spinners..
         Cursor itemToCopyFrom = getContentResolver().query(MyContract.templateByBarcodeUri(mBarcodeValue), null, null, null, null);
         if (itemToCopyFrom != null && itemToCopyFrom.moveToFirst()) {
