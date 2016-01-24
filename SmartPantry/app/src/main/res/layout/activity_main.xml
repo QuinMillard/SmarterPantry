@@ -3,7 +3,8 @@
     xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clickable="true">
 
     <!-- Main content layout -->
     <RelativeLayout
@@ -20,7 +21,8 @@
             android:clipToPadding="false"
             android:drawSelectorOnTop="true"
             android:fastScrollEnabled="true"
-            android:overScrollMode="never" />
+            android:overScrollMode="never"
+            android:clickable="true" />
 
         <com.macadamian.smartpantry.widgets.EmptyViewWidget
             android:id="@+id/pantry_list_empty_view"
@@ -28,7 +30,7 @@
             android:layout_height="match_parent"
             android:visibility="gone"/>
 
-        <com.macadamian.smartpantry.widgets.SubAppBarWidget
+        <com.macadamian.smartpantry.widgets.SubAppBarWidgetf
             android:id="@+id/sub_app_bar_widget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -41,7 +43,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:weightSum="1">
 
             <com.melnykov.fab.FloatingActionButton
                 android:id="@+id/add_item_button"
@@ -57,6 +60,24 @@
                 fab:fab_colorRipple="@color/grey" />
 
         </LinearLayout>
+
+        <Chronometer
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/chronometer"
+            android:layout_alignBottom="@+id/sub_app_bar_widget"
+            android:layout_alignParentEnd="true" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/sub_app_bar_widget"
+            android:layout_alignStart="@+id/checkBox"
+            android:layout_marginTop="32dp">
+
+        </LinearLayout>
+
 
     </RelativeLayout>
 
