@@ -6,19 +6,12 @@
 
 	<h1> Testing Variables</h1>
 <!-- ng-app initializes -->
-	<div ng-app = "">
-
-	<p>Please enter variable 1: <input type = "number" ng-model = "var1"></p>
-	<p>Enter variable 2: <input type ="number" ng-model ="var2"></p>
-	<p>Please enter your first name: <input type ="text" ng-model = "firstname"> as well as your last name  <input type = "text" ng-model = "lastname"></p>
-
-	<p>Hello <span ng-bind = "firstname"></span> <span ng-bind = "lastname"></span>!
-
-	<p>Your total value is
-	{{ (var1 * var2).isFinite? (var1 * var2) :  'Please enter a number'
-	}}
-	</p>
-
+	<div ng-app = "" ng-init = "quantity=2;cost=30; student= {firstname:'Jimi', lastname:'Vyas', rollno:101};marks = [80, 90, 100, 100, 74, 30]">
+		<p>Hello {{student.firstname + " " + student.lastname}}!</p>
+		<p>Your Roll Number is {{student.rollno}}</p>
+		<p>Your math mark is {{marks[2]}}</p>
+		<p> Oh and you spent {{cost * quantity}} on books this term </p>
+</div>
 
 
 	<script src = "http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js">
