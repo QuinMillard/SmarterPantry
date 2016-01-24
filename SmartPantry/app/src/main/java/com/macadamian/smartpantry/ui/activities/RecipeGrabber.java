@@ -1,9 +1,6 @@
 package com.macadamian.smartpantry.ui.activities;
 
-import android.widget.Toast;
-
-import com.google.gson.JsonObject;
-
+import android.os.StrictMode;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -21,15 +18,21 @@ public class RecipeGrabber {
     URL url;
     JSONObject object;
     InputStream inStream;
-
+    RecipeGrabber(){
+        object = null;
+    }
     JSONObject getLink(String[] ingredients) {
 
         StringBuilder urlString = new StringBuilder();
         urlString.append("https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/findByIngredients/");
-        for (String s : ingredients)
+        for (String s : ingredients) {
             urlString.append(s + ",");
-
+        }
+        urlString.deleteCharAt(urlString.length()-1);
+        System.out.print(urlString.toString());
         try {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
             url = new URL(urlString.toString());
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -51,5 +54,4 @@ public class RecipeGrabber {
         }
     return object;
     }
-
 }

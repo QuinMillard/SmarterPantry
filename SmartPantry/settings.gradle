@@ -1,1 +1,1 @@
-include ':app', ':jackson-all-1.9.0'
+include ':app', ':jackson-all-1.9.0', ':okhttp-3.0.1'

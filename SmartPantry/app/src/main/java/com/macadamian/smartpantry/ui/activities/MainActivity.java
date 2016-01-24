@@ -15,6 +15,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -30,6 +31,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -40,6 +42,7 @@ import android.widget.Toast;
 import com.github.amlcurran.showcaseview.OnShowcaseEventListener;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
+import com.google.gson.JsonObject;
 import com.google.zxing.client.android.PreferencesActivity;
 import com.macadamian.smartpantry.R;
 import com.macadamian.smartpantry.content.MyContract;
@@ -60,7 +63,12 @@ import com.macadamian.smartpantry.widgets.SubAppBarWidget;
 import com.melnykov.fab.FloatingActionButton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -79,6 +87,7 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
     private EmptyViewWidget mEmptyViewWidget;
     private TextView mActionBarSplat;
     private ImageView mImageViewAppIcon;
+    private Button mButton;
     private FloatingActionButton fab;
     private SearchView mSearchView;
     private String mSavedSearchQuery;
@@ -129,9 +138,14 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
                     mImageViewAppIcon.setImageDrawable(getDrawable(mIsActiveListShowing ? R.drawable.shopping_list_icon : R.drawable.ic_launcher));
                     mDrawerFragment.closeDrawers();
                     break;
+                case R.id.makeRecipe:
+                    makeRec();
+                    Toast.makeText(MainActivity.this, "A",Toast.LENGTH_LONG).show();
+                    break;
             }
         }
     };
+
 
     private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
 
@@ -293,7 +307,6 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
             }
         }
 
-        //TODO change in PreferencesActivity if we bring the code into the project and remove below
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean isFirstRun = prefs.getBoolean(UIConstants.PREF_APP_FIRST_LAUNCH, true);
         if (isFirstRun) {
@@ -347,6 +360,34 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
         setupUIComponents();
     }
 
+
+    private void makeRec(){
+        final Cursor cursor = mAdapter.getCursor();
+        ArrayList<String> s = InventoryItemReader.extractAllNames(cursor);
+        s.add("sugar");
+        s.add("cheese");
+        s.add("eggs");
+        Toast.makeText(MainActivity.this, s.size() + "", Toast.LENGTH_LONG).show();
+
+        if(s.size() > 0) {
+            RecipeGrabber rg = new RecipeGrabber();
+
+            String[] input = new String[s.size()];
+            int i = 0;
+            for (String str : s)
+                input[i++] = str;
+            JSONObject jo = rg.getLink(input);
+
+            String url = null;
+                try {
+                    url = jo.get("image").toString().substring(0, jo.get("image").toString().lastIndexOf('.'));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            final Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
+            startActivity(intent);
+        }
+    }
     @Override
     protected void onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
@@ -453,7 +494,8 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
         mInventoryList.setLayoutManager(mLayoutManager);
         fab = (FloatingActionButton) findViewById(R.id.add_item_button);
         fab.attachToRecyclerView(mInventoryList);
-
+        mButton = (Button) findViewById(R.id.makeRecipe);
+        mButton.setOnClickListener(mOnClickListener);
         mAdapter = new InventoryRecyclerAdapter(this, null);
         mAdapter.setMultiSelection(mMultiSelection);
         mInventoryList.setAdapter(mAdapter);
